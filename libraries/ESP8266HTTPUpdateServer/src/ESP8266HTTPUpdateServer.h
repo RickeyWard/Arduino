@@ -37,11 +37,11 @@ class ESP8266HTTPUpdateServer
     }
 
     enum ProgressResult { 
-      PROGRESS_UNKOWN = -4, //If Content-Length was not supplied to post, progress is currenlty undeterminable 
-      ERROR = -2 , 
-      ABORTED = -3 ,
-      STARTING = -1,
-      FINISHED = 101 };
+      PROGRESS_UNKNOWN = -4, //If Content-Length was not supplied to post, progress is currenlty undeterminable 
+      PROGRESS_ABORTED = -3 ,
+      PROGRESS_ERROR = -2 , 
+      PROGRESS_STARTING = -1,
+      PROGRESS_FINISHED = 101 };
 
   protected:
     void _setUpdaterError();
