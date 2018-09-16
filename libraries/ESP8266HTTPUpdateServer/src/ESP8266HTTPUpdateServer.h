@@ -23,7 +23,12 @@ class ESP8266HTTPUpdateServer
       setup(server, "/update", username, password);
     }
 
-    void setup(ESP8266WebServer *server, const char * path, const char * username, const char * password);
+    void setup(ESP8266WebServer *server, const char * path, const char * username, const char * password)
+    {
+      setup(server, "/update", username, password, NULL);
+    }
+
+    void setup(ESP8266WebServer *server, const char * path, const char * username, const char * password, void (*progressCallBack)(int) );
 
     void updateCredentials(const char * username, const char * password)
     {
@@ -41,6 +46,7 @@ class ESP8266HTTPUpdateServer
     char * _password;
     bool _authenticated;
     String _updaterError;
+    void (*_progressCallBack)(int);
 };
 
 

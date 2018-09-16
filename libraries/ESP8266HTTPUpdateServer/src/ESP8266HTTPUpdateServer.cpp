@@ -23,13 +23,17 @@ ESP8266HTTPUpdateServer::ESP8266HTTPUpdateServer(bool serial_debug)
   _username = NULL;
   _password = NULL;
   _authenticated = false;
+  _progressCallBack = NULL;
+  
 }
 
-void ESP8266HTTPUpdateServer::setup(ESP8266WebServer *server, const char * path, const char * username, const char * password)
+void ESP8266HTTPUpdateServer::setup(ESP8266WebServer *server, const char * path, const char * username, const char * password, void (*progressCallBack)(int))
 {
+
     _server = server;
     _username = (char *)username;
     _password = (char *)password;
+    _progressCallBack = progressCallBack;
 
     // handler for the /update form page
     _server->on(path, HTTP_GET, [&](){
@@ -71,18 +75,23 @@ void ESP8266HTTPUpdateServer::setup(ESP8266WebServer *server, const char * path,
         WiFiUDP::stopAll();
         if (_serial_output)
           Serial.printf("Update: %s\n", upload.filename.c_str());
+        if (*_progressCallBack != NULL)
+          _progressCallBack(0);
         uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
         if(!Update.begin(maxSketchSpace)){//start with max available size
           _setUpdaterError();
         }
       } else if(_authenticated && upload.status == UPLOAD_FILE_WRITE && !_updaterError.length()){
         if (_serial_output) Serial.printf(".");
+        if (*_progressCallBack != NULL)
+          _progressCallBack((upload.totalSize * 100) / upload.contentLength);
         if(Update.write(upload.buf, upload.currentSize) != upload.currentSize){
           _setUpdaterError();
         }
       } else if(_authenticated && upload.status == UPLOAD_FILE_END && !_updaterError.length()){
         if(Update.end(true)){ //true to set the size to the current progress
           if (_serial_output) Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+          if (*_progressCallBack != NULL) _progressCallBack(100);
         } else {
           _setUpdaterError();
         }
@@ -98,6 +107,7 @@ void ESP8266HTTPUpdateServer::setup(ESP8266WebServer *server, const char * path,
 void ESP8266HTTPUpdateServer::_setUpdaterError()
 {
   if (_serial_output) Update.printError(Serial);
+  if(*_progressCallBack != NULL) _progressCallBack(-1);
   StreamString str;
   Update.printError(str);
   _updaterError = str.c_str();
