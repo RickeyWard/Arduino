@@ -36,6 +36,13 @@ class ESP8266HTTPUpdateServer
       _password = (char *)password;
     }
 
+    enum ProgressResult { 
+      PROGRESS_UNKOWN = -4, //If Content-Length was not supplied to post, progress is currenlty undeterminable 
+      ERROR = -2 , 
+      ABORTED = -3 ,
+      STARTING = -1,
+      FINISHED = 101 };
+
   protected:
     void _setUpdaterError();
 
