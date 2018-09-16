@@ -84,7 +84,7 @@ void ESP8266HTTPUpdateServer::setup(ESP8266WebServer *server, const char * path,
       } else if(_authenticated && upload.status == UPLOAD_FILE_WRITE && !_updaterError.length()){
         if (_serial_output) Serial.printf(".");
         if (*_progressCallBack != NULL)
-          _progressCallBack((upload.totalSize * 100) / upload.contentLength);
+          (upload.contentLength == 0) ? _progressCallBack(-2) : _progressCallBack((upload.totalSize * 100) / upload.contentLength);
         if(Update.write(upload.buf, upload.currentSize) != upload.currentSize){
           _setUpdaterError();
         }
